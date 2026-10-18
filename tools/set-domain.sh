@@ -55,7 +55,7 @@ done
 
 echo ""
 if [ "$fail" -eq 0 ]; then
-  echo "一致 ✅ —— 四個檔案都指向 $TARGET，沒有殘留別的域名。"
+  echo "一致 ✅ —— 四個檔案都指向 ${TARGET}，沒有殘留別的域名。"
 else
   echo "有 $fail 處需要處理。"
   exit 1
