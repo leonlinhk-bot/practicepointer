@@ -1,5 +1,9 @@
 # 執業指針 PracticePointer
 
+- 網站：https://practicepointer.org/
+- 本索引檔：https://practicepointer.org/llms.txt
+- 來源庫：https://github.com/practicepointer/practicepointer
+
 > 香港保險中介人的執業基礎設施。由從業員共建、向全行業開放的獨立開源項目。
 >
 > **重要**：本項目**不是官方網站**。它不屬於香港特別行政區政府、保險業監管局（IA）、
