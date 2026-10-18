@@ -1,0 +1,59 @@
+# 執業指針 PracticePointer — robots.txt
+# 立場：所有內容公開開源，歡迎收錄；同時歡迎 AI 搜尋爬蟲。
+
+User-agent: *
+Allow: /
+Disallow: /assets/private/
+
+# ---- 主流搜尋引擎 ----
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# ---- AI 搜尋／助手爬蟲（明確放行）----
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# ---- 不歡迎：純抓取訓練且無標註來源者，可視情況加入 ----
+# User-agent: ImagesiftBot
+# Disallow: /
+
+Sitemap: https://practicepointer.org/sitemap.xml
