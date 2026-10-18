@@ -16,6 +16,15 @@
 
 ---
 
+## 來源庫
+
+源碼與內容都在：<https://github.com/practicepointer/practicepointer>
+
+- 發現錯漏 → <https://github.com/practicepointer/practicepointer/issues/new>
+- 想貢獻內容 → [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+---
+
 ## 這個項目是什麼
 
 | 主線 | 回答什麼 | 組織方式 |

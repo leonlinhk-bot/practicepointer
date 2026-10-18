@@ -12,7 +12,8 @@ set -e
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DEST="$HERE/../site"
 
-for f in index.html llms.txt robots.txt sitemap.xml; do
+# _redirects 一定要帶：www → 根域的 301 靠它，漏了 www 就會變成重複內容
+for f in index.html llms.txt robots.txt sitemap.xml _redirects _headers CNAME .nojekyll; do
   if [ -f "$HERE/$f" ]; then
     cp "$HERE/$f" "$DEST/$f"
     echo "  synced  $f"
