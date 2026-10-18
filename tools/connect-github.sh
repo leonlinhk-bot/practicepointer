@@ -66,6 +66,13 @@ else
   git remote add origin "$ARG"
 fi
 
-git push -u origin main
-echo ""
-echo "✅ 推送完成。"
+# ⚠️ 必須檢查 push 的退出碼：前一版沒檢查，push 失敗（代理 502）時
+#    仍印出「✅ 推送完成」—— 假綠，比不印更危險。
+if git push -u origin main; then
+  echo ""
+  echo "✅ 推送完成。"
+else
+  echo ""
+  echo "❌ 推送失敗（見上方 git 輸出）。常見原因：網路代理擋住 git 的 HTTPS 通道。"
+  exit 1
+fi
