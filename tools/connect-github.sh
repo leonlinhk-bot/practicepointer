@@ -4,31 +4,38 @@
 # 前提：GitHub 上已建立「空」倉庫（不要勾 README / .gitignore / LICENSE，
 #       否則會因為歷史不相關而被拒絕推送）。
 #
-# 用法：./tools/connect-github.sh <倉庫網址或 owner/repo>
-#   例：./tools/connect-github.sh git@github.com:practicepointer/practicepointer.git
-#   例：./tools/connect-github.sh practicepointer/practicepointer   （自動補成 SSH 網址）
+# 用法：./tools/connect-github.sh <倉庫網址>
+#   例：./tools/connect-github.sh https://github.com/<owner>/practicepointer.git
+#   例：./tools/connect-github.sh git@github.com:<owner>/practicepointer.git
+# 憑證：走 git credential helper（本機 ~/.git-credentials），本腳本不接觸 token 本身。
+#
+# ⚠️ 為什麼掃描要排除自己：前一版把偵測用的字面量寫在腳本裡，
+#   掃描時掃到自己 → 假紅，把合法的 push 擋掉了。
+#   現在模式獨立放在 tools/pii-patterns.txt，只排除那一個檔與本檔。
 
-set -eu
+set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$HERE/.."
 
 ARG="${1:-}"
 if [ -z "$ARG" ]; then
-  echo "用法：./tools/connect-github.sh <owner/repo 或 倉庫網址>" >&2
+  echo "用法：./tools/connect-github.sh <倉庫網址>" >&2
   exit 2
 fi
+echo "遠端：$ARG"
 
-case "$ARG" in
-  *:*) URL="$ARG" ;;
-  http*) URL="$ARG" ;;
-  *) URL="git@github.com:${ARG}.git" ;;
-esac
-echo "遠端：$URL"
-
-# 推送前的三道關卡，任何一道不過就停
 echo ""
-echo "=== 1/3 敏感資訊檢查 ==="
-hits=$(grep -rniI "leonl\.inhk\|@gmail\|Leon Liang" . 2>/dev/null | grep -v "^./.git/" || true)
+echo "=== 1/3 個人資訊檢查（掃已追蹤檔案）==="
+# ⚠️ 模式檔裡不能留空行：grep -f 會把「空正則」當成匹配所有行，
+#    結果每個檔案的每一行都算命中 —— 假紅。所以先清掉空行與 # 註解再餵給 grep。
+PAT_CLEAN="$(mktemp)"
+grep -vE '^[[:space:]]*(#|$)' "$HERE/pii-patterns.txt" > "$PAT_CLEAN"
+trap 'rm -f "$PAT_CLEAN"' EXIT
+echo "  使用模式：$(tr '\n' ' ' < "$PAT_CLEAN")"
+hits=$(git ls-files \
+       | grep -vE '^tools/(connect-github\.sh|pii-patterns\.txt)$' \
+       | tr '\n' '\0' \
+       | xargs -0 grep -niI -f "$PAT_CLEAN" 2>/dev/null || true)
 if [ -n "$hits" ]; then
   echo "❌ 發現個人資訊，已中止（本倉庫會公開）："
   echo "$hits" | head -5
@@ -39,7 +46,7 @@ echo "  零命中 ✅"
 echo ""
 echo "=== 2/3 提交者身分檢查 ==="
 authors=$(git log --format="%ae" | sort -u)
-echo "  $authors" | sed 's/^/  /'
+echo "$authors" | sed 's/^/  /'
 if echo "$authors" | grep -qiE "@gmail|leonl|leonliang"; then
   echo "  ❌ 歷史裡有個人郵箱，push 後會永久公開，已中止"
   exit 1
@@ -54,11 +61,11 @@ echo "  當前分支：$(git rev-parse --abbrev-ref HEAD)"
 echo ""
 if git remote get-url origin >/dev/null 2>&1; then
   echo "origin 已存在，改指向新網址"
-  git remote set-url origin "$URL"
+  git remote set-url origin "$ARG"
 else
-  git remote add origin "$URL"
+  git remote add origin "$ARG"
 fi
 
 git push -u origin main
 echo ""
-echo "✅ 推送完成。下一步：跑 ./tools/set-repo.sh <owner>/<repo> 換掉站上的糾錯連結。"
+echo "✅ 推送完成。"

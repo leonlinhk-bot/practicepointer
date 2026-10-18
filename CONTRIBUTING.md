@@ -13,7 +13,7 @@
 
 | 步 | 動作 | 門檻 |
 | --- | --- | --- |
-| 1 | **糾錯** —— 看到講得不準，[開一個 issue](https://github.com/practicepointer/practicepointer/issues/new) | 三分鐘，不用寫文章 |
+| 1 | **糾錯** —— 看到講得不準，[開一個 issue](https://github.com/leonlinhk-bot/practicepointer/issues/new) | 三分鐘，不用寫文章 |
 | 2 | **採納** —— 經討論採納後併入 | 需引官方原文或監管機構出處 |
 | 3 | **署名** —— 進貢獻者牆 | 自動 |
 

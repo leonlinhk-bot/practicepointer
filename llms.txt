@@ -2,7 +2,7 @@
 
 - 網站：https://practicepointer.org/
 - 本索引檔：https://practicepointer.org/llms.txt
-- 來源庫：https://github.com/practicepointer/practicepointer
+- 來源庫：https://github.com/leonlinhk-bot/practicepointer
 
 > 香港保險中介人的執業基礎設施。由從業員共建、向全行業開放的獨立開源項目。
 >
@@ -94,7 +94,7 @@
 ## 糾錯與貢獻
 
 最低門檻入口是「糾錯」：發現條目不準，提交議題 → 按「疑問＋出處＋自查」格式改寫 → 署名進貢獻者牆。
-提交：https://github.com/practicepointer/practicepointer/issues/new
+提交：https://github.com/leonlinhk-bot/practicepointer/issues/new
 
 ## 最後更新
 

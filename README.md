@@ -18,9 +18,9 @@
 
 ## 來源庫
 
-源碼與內容都在：<https://github.com/practicepointer/practicepointer>
+源碼與內容都在：<https://github.com/leonlinhk-bot/practicepointer>
 
-- 發現錯漏 → <https://github.com/practicepointer/practicepointer/issues/new>
+- 發現錯漏 → <https://github.com/leonlinhk-bot/practicepointer/issues/new>
 - 想貢獻內容 → [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ---

@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: 先讀參與方式
-    url: https://github.com/practicepointer/practicepointer/blob/main/CONTRIBUTING.md
+    url: https://github.com/leonlinhk-bot/practicepointer/blob/main/CONTRIBUTING.md
     about: 三步走：糾錯 → 採納 → 署名。開 issue 前請先讀。
   - name: 條文原文在哪查
     url: https://www.elegislation.gov.hk/
