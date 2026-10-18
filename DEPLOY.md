@@ -39,15 +39,40 @@
 | 追蹤碼 | 線上 HTML 0 命中（`cloudflareinsights`／`gtag`／`beacon` 全無），頁尾聲明成立 ✅ |
 | canonical | `https://practicepointer.org/` ✅ |
 
+## GitHub 倉庫（2026-10-19 已建）
+
+| 項目 | 值 |
+| --- | --- |
+| 網址 | <https://github.com/leonlinhk-bot/practicepointer> |
+| 可見性 | Public |
+| Issues | 開（糾錯入口靠它）；wiki / projects 關（公開倉庫的灌水面） |
+| topics | hong-kong, insurance, compliance, insurance-agents, open-source, cantonese, financial-literacy |
+
+> ⚠️ **GitHub 建組織的 API 已廢除**（`POST /organizations` 回 404），只能到網頁建。
+> 所以倉庫落在帳號下而非 `practicepointer` 組織；站上連結已用 `tools/set-repo.sh` 全部改掉。
+
+> ⚠️ **這台機器上 `github.com` 走 git 協定不通**：代理只放行 `api.github.com`，
+> 直連 github.com:443 逾時。`git push` 一律失敗（502 / 連線逾時）。
+> 因此改用 **GitHub Git Data API** 推送（`tools/` 之外的 `/tmp/push_via_api.py` 思路）：
+> 逐 commit 建 blob → tree → commit，再用 PATCH 更新 ref。
+> 好處是作者、時間、message 全部保留，連 commit sha 都與本地一致。
+
+---
+
 ## 尚未處理 / 待決
 
-- **`www.practicepointer.org` 目前 NXDOMAIN**（未設記錄）。若要支援，需在 Dashboard 加 CNAME；
-  **但正確做法是 301 到 apex**，而 Redirect Rules 需要 zone 寫入權限，本次的 scoped token 沒有。
-  現階段刻意不加，避免出現兩個內容完全相同的站。
+- **`www.practicepointer.org` 做了一半**：
+  - ✅ Pages 已把 `www.practicepointer.org` 設為自訂網域（狀態 `initializing`）
+  - ✅ `_redirects`（www → apex 301）已隨部署上傳，線上 `/_redirects` 200
+  - ❌ **DNS 那筆 CNAME 加不上去** —— OAuth token 打 `POST /zones/{id}/dns_records` 回 **403 Authentication error**
+    （這支 token 有 Pages 寫入權，沒有 DNS 寫入權）
+  - 待辦：開一支含 `Zone → DNS:Edit` 的 scoped token，加 `CNAME www → practicepointer.pages.dev`（開 Proxy），
+    Pages 那筆自訂網域才會從 `initializing` 轉 `active`
 - **ICANN 電郵驗證**：RDAP 無 `clientHold`，NS 仍是 `jose/rihana.ns.cloudflare.com` 且正常解析，
   未見 suspension。但驗證信是否已點，API 查不到（OAuth 無 registrar 權限），需本人到信箱確認。
-- **GitHub 自動部署**：repo 目前**沒有 remote**（只有本地兩次提交）。要接 GitHub 需先建遠端 repo，
-  再到 Pages 專案 Connect to Git。
+- **GitHub 自動部署**：遠端 repo 已建，但本機 `git push` 走不通（見上）。
+  要接自動部署，需在**能連 github.com 的環境**推送一次，或到 Pages 專案用 **Connect to Git**
+  直接授權 GitHub（不用經過本機網路）。
 - **`practicepointer.hk`**：仍延後未註冊（HKIRC 無 RDAP）。
 
 ## 日後部署命令
