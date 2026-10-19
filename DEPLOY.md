@@ -90,6 +90,39 @@ OAuth token 會過期（約 30 天）。過期時重跑 `npx wrangler login`，�
 
 ---
 
+## 誰負責什麼（2026-10-19 定案）
+
+| 事項 | 負責 |
+| --- | --- |
+| 內容（文案、條文、頁面結構） | WorkBuddy |
+| 部署、域名、DNS、憑證、驗收 | Hermes（本機 agent） |
+
+**部署一律走 `tools/deploy.sh`**，不要手敲 wrangler 命令：
+
+```bash
+cd ~/WorkBuddy/2026-10-15-11-31-42/repo
+./tools/deploy.sh              # 同步 repo → site + 部署 production + 當場驗收
+./tools/deploy.sh --no-sync    # site/ 已是你要的內容時
+```
+
+腳本會做四件事，缺一件都會讓線上出問題：
+
+1. **同步 `repo/` → `site/`**（`sync-to-publish.sh`）。不能直接丟 `repo/`，會把 `.git`（含提交者姓名電郵）一起上傳。
+2. **解析憑證**：依序找 `CLOUDFLARE_API_TOKEN`、`~/.wrangler/config/default.toml`、`~/Library/Preferences/.wrangler/config/default.toml`，並實測能不能碰到 `practicepointer.org` 這個 zone；讀到輪替的舊 token 會自動跳過。
+3. **部署**：非互動 shell 必須把 token 傳成 `CLOUDFLARE_API_TOKEN`，否則 wrangler 直接拒絕（`pages project create` 成功不代表 `pages deploy` 能跑）。
+4. **驗收 9 項**：`/`、`/llms.txt`、`/sitemap.xml`、`/robots.txt` 皆 200；不存在路徑必須 **404**（不是 200 首頁）；`www` 301 且保留路徑；`http` 301；線上首頁與 `site/index.html` **逐 byte 相同**；`_headers` 生效；頁面無追蹤碼。任一項不過就 exit 1，不許宣告成功。
+
+憑證過期時腳本會直接告訴你重跑 `npx --yes wrangler@4.151.1 login`，在瀏覽器按一次 Allow 即可。
+
+### 交接給內容方（WorkBuddy）
+
+- 改內容：只改 `repo/` 裡的 `index.html` / `llms.txt` / `robots.txt` / `sitemap.xml`，然後通知 Hermes 部署；或自己跑上面那條命令。
+- **不要**動 `_worker.js`（www→apex 301）、`_headers`（安全標頭）、`404.html`（沒有它 Pages 會退回 SPA，全站變 soft 404）、`CNAME`。
+- 不要新增 `_redirects` 做跨主機轉址 —— Pages 只匹配路徑，寫主機名不生效。
+- 域名側（Registrar、DNS、憑證、ICANN 驗證）由 Hermes 管，WorkBuddy 不需要碰。
+
+---
+
 ## 2026-10-19 12:20 修復：www 301 與全站 soft 404
 
 ### 問題一：`www` 沒有 301，與根域內容完全重複
