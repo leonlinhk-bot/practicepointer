@@ -36,10 +36,11 @@ say() { printf '%s\n' "$*"; }
 die() { printf '✗ %s\n' "$*" >&2; exit 1; }
 
 # --- 0. 參數 ---
-SYNC=1; FORCE=0
+SYNC=1; FORCE=0; PUSH=1
 for a in "$@"; do
   case "$a" in
     --no-sync) SYNC=0 ;;
+    --no-push) PUSH=0 ;;
     --force)   FORCE=1 ;;
     *) echo "未知參數：$a" >&2; exit 1 ;;
   esac
@@ -72,6 +73,19 @@ if [ "$SYNC" -eq 1 ]; then
   say "→ 同步 repo → site"
   "$ROOT/sync-to-publish.sh" >/dev/null || die "sync-to-publish.sh 失敗"
   say "  ok"
+fi
+
+# --- 1b. 提交快照（部署前落地，推送留到驗收全綠之後）---
+GITN="${GIT_AUTHOR_NAME:-Leon Liang}"
+GITE="${GIT_AUTHOR_EMAIL:-leonl.inhk@gmail.com}"
+if [ -n "$(git -C "$ROOT" status --porcelain 2>/dev/null)" ]; then
+  files=$(git -C "$ROOT" status --porcelain | awk '{print $NF}' | tr '\n' ' ')
+  git -C "$ROOT" add -A >/dev/null 2>&1
+  git -C "$ROOT" -c user.name="$GITN" -c user.email="$GITE" \
+    commit -q -m "deploy: $(date '+%Y-%m-%d %H:%M') — ${files:0:120}" \
+    && say "→ 已提交快照：${files:0:90}"
+else
+  say "→ 工作區乾淨，部署既有提交 $(git -C "$ROOT" rev-parse --short HEAD)"
 fi
 
 # --- 2. 憑證 ---
@@ -162,6 +176,19 @@ echo
 if [ "$fail" -eq 0 ] && [ "$envfail" -eq 0 ]; then
   say "✅ 部署方自檢全綠：$SITE"
   say "   （線上獨立複驗由內容方做：只讀，不算部署）"
+
+  # 推送：唯一值得推的時刻就是「程式碼 = 線上 = 已驗證」這三者重合的現在
+  if [ "$PUSH" -eq 1 ]; then
+    if GIT_TERMINAL_PROMPT=0 git -C "$ROOT" push origin HEAD:main >/tmp/_pp_push.log 2>&1; then
+      say "→ 已推送 origin/main：$(git -C "$ROOT" rev-parse --short HEAD)"
+    else
+      say "⚠ 推送失敗（部署已成功，不影響線上）："
+      sed 's/^/   /' /tmp/_pp_push.log | tail -4
+      say "   處理：cd $ROOT && git push origin HEAD:main"
+    fi
+  else
+    say "→ 略過推送（--no-push）"
+  fi
 elif [ "$fail" -eq 0 ]; then
   say "⚠️ 部署完成，但有 $envfail 項因本機代理無法驗證 —— 不宣告成功，也不宣告失敗。"
   say "   換通道或請內容方複驗這幾項。"
