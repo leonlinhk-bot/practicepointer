@@ -12,7 +12,7 @@
 | Pages 專案 | `practicepointer`（production branch `main`） |
 | 生產網址 | <https://practicepointer.org> |
 | Pages 備用網址 | <https://practicepointer.pages.dev> |
-| 本次部署 hash | `fc4d74b2.practicepointer.pages.dev` |
+| 本次部署 hash | `f324bf18.practicepointer.pages.dev`（2026-10-19T05:27:58Z，`_worker.js` 已換主機集合版） |
 | DNS 記錄 | CNAME `practicepointer.org` → `practicepointer.pages.dev`，Proxied，id `de28f722a46deb5ecf3198a3e35928cc` |
 | 憑證 | Google Trust Services WE1，CN=`practicepointer.org`，到期 2027-01-16（自動續） |
 
@@ -84,7 +84,9 @@ CLOUDFLARE_API_TOKEN="$TOK" CLOUDFLARE_ACCOUNT_ID=c2088e34e4974c8a4cdd2d6655e253
   npx --yes wrangler@4.151.1 pages deploy site --project-name practicepointer --branch main
 ```
 
-OAuth token 會過期（約 30 天）。過期時重跑 `npx wrangler login`，用戶在瀏覽器按一次 Allow 即可。
+憑證優先序：`CLOUDFLARE_API_TOKEN` 環境變數 → `~/.cf-token-pp`（專案 scoped token：`Account → Cloudflare Pages → Edit`，**TTL 留空**）→ wrangler OAuth。
+
+OAuth 在這台機器不可靠：`wrangler login` 的回調只綁 `::1`，Chrome 先試 `127.0.0.1` 會 `ERR_CONNECTION_REFUSED`；就算補了 IPv4→IPv6 轉發，VPN 代理也會讓 Cloudflare 回 `did not return an authorisation code`。**部署請走 `~/.cf-token-pp`**，`deploy.sh` 會自動讀。
 憑證檔位置會隨 wrangler 版本變：舊版在 `~/Library/Preferences/.wrangler/config/default.toml`，
 4.151 實測寫在 `~/.wrangler/config/default.toml` —— 讀之前兩個都看一眼，讀錯會拿到已輪替的舊 token（表現為 `Invalid API Token`）。
 

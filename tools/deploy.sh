@@ -76,6 +76,8 @@ fi
 
 # --- 2. 憑證 ---
 TOK="${CLOUDFLARE_API_TOKEN:-}"
+# 專案 scoped token（Account → Cloudflare Pages → Edit，無到期），比 wrangler OAuth 穩
+[ -z "$TOK" ] && [ -s "$HOME/.cf-token-pp" ] && TOK="$(cat "$HOME/.cf-token-pp")"
 if [ -z "$TOK" ]; then
   for f in "$HOME/.wrangler/config/default.toml" \
            "$HOME/Library/Preferences/.wrangler/config/default.toml"; do
