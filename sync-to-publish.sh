@@ -12,8 +12,9 @@ set -e
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DEST="$HERE/../site"
 
-# _redirects 一定要帶：www → 根域的 301 靠它，漏了 www 就會變成重複內容
-for f in index.html llms.txt robots.txt sitemap.xml _redirects _headers CNAME .nojekyll; do
+# 404.html 一定要帶：Pages 在沒有頂層 404.html 時會當作 SPA，任何不存在的路徑都回 200 首頁（soft 404）
+# _worker.js 一定要帶：www → 根域的 301 靠它。Pages 的 _redirects 只匹配路徑，寫主機名不會生效
+for f in index.html llms.txt robots.txt sitemap.xml 404.html _worker.js _headers CNAME .nojekyll; do
   if [ -f "$HERE/$f" ]; then
     cp "$HERE/$f" "$DEST/$f"
     echo "  synced  $f"
