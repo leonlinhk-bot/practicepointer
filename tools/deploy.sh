@@ -68,7 +68,7 @@ if [ "$SYNC" -eq 1 ]; then
     die "site/ 有比 repo/ 新的內容，疑似手改：$drift
    唯一編輯源是 repo/。若確認要覆蓋，用 --force。"
   fi
-  [ -n "$drift" ] && say "⚠ 覆蓋 site/ 的手改內容：$drift（--force）"
+  [ -n "$drift" ] && say "⚠ 覆蓋 site/ 的手改內容：${drift}（--force）"
 
   say "→ 同步 repo → site"
   "$ROOT/sync-to-publish.sh" >/dev/null || die "sync-to-publish.sh 失敗"
@@ -101,13 +101,13 @@ TOK=""
 if [ -s "$HOME/.cf-token-pp" ]; then
   t=$(cat "$HOME/.cf-token-pp")
   if api_ok "$t"; then TOK="$t"; say "→ 憑證來源：~/.cf-token-pp"
-  else say "⚠ ~/.cf-token-pp 的 token 碰不到 $PROJECT，跳過"; fi
+  else say "⚠ ~/.cf-token-pp 的 token 碰不到 ${PROJECT}，跳過"; fi
 fi
 
 # ② 環境變數（可能被其它專案的 token 佔用，必須實測再採用）
 if [ -z "$TOK" ] && [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
   if api_ok "$CLOUDFLARE_API_TOKEN"; then TOK="$CLOUDFLARE_API_TOKEN"; say "→ 憑證來源：環境變數 CLOUDFLARE_API_TOKEN"
-  else say "⚠ 環境變數 CLOUDFLARE_API_TOKEN 碰不到 $PROJECT，跳過"; fi
+  else say "⚠ 環境變數 CLOUDFLARE_API_TOKEN 碰不到 ${PROJECT}，跳過"; fi
 fi
 
 # ③ wrangler OAuth
