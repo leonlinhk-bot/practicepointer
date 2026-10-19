@@ -85,3 +85,59 @@ CLOUDFLARE_API_TOKEN="$TOK" CLOUDFLARE_ACCOUNT_ID=c2088e34e4974c8a4cdd2d6655e253
 ```
 
 OAuth token 會過期（約 30 天）。過期時重跑 `npx wrangler login`，用戶在瀏覽器按一次 Allow 即可。
+憑證檔位置會隨 wrangler 版本變：舊版在 `~/Library/Preferences/.wrangler/config/default.toml`，
+4.151 實測寫在 `~/.wrangler/config/default.toml` —— 讀之前兩個都看一眼，讀錯會拿到已輪替的舊 token（表現為 `Invalid API Token`）。
+
+---
+
+## 2026-10-19 12:20 修復：www 301 與全站 soft 404
+
+### 問題一：`www` 沒有 301，與根域內容完全重複
+
+`_redirects` 裡那條 `https://www.practicepointer.org/*  https://practicepointer.org/:splat  301`
+**在 Pages 不會生效**：Pages 的 `_redirects` 只匹配**路徑**，來源寫主機名等於註解。
+`www` 早在 02:49 就被加進 Pages 自訂域，所以 522 是暫時狀態，真正問題是它直接回 200 首頁。
+
+修法：`_worker.js`（Pages Functions 進階模式）在主機層做 301。選它而非 zone 層 Redirect Rule，
+是因為手上只有 Pages 權限（OAuth 無 zone 寫入）。日後若加了 Redirect Rule，這支 worker 可直接刪。
+
+```js
+if (url.hostname === "www.practicepointer.org") { url.hostname = "practicepointer.org"; return Response.redirect(url.toString(), 301); }
+return env.ASSETS.fetch(request);
+```
+
+### 問題二：全站 soft 404（任何路徑都回 200 首頁）
+
+**根因在 Cloudflare 的預設行為，不是設定被改壞**：官方文件明寫「若專案沒有頂層 `404.html`，
+Pages 就當你是 SPA，任何對不到靜態資產的路徑都回根目錄」。所以 `/nope`、`/a/b/c.css`、`/favicon.ico`
+全部 200 + 首頁 —— 對搜尋引擎是壞信號。
+
+修法：加一個頂層 `404.html`（本站自製版，無外部資源、`noindex`），立刻恢復真 404。
+
+### 本次驗證（curl + 第三方 vantage 雙通道）
+
+| 檢查 | 結果 |
+| --- | --- |
+| `www.practicepointer.org/` | 301 → `https://practicepointer.org/` |
+| `www/llms.txt` | 301 → `https://practicepointer.org/llms.txt`（路徑保留） |
+| `www/a/b?x=1&y=2` | 301 → 保留路徑與 query |
+| `practicepointer.org/` `/llms.txt` `/sitemap.xml` `/robots.txt` | 200，大小正確 |
+| `/nope-xyz-123`、`/favicon.ico` | **404** + 自製 404 頁（3,557 bytes） |
+| `_headers` | 200 與 404 回應都套用（DENY / nosniff / permissions-policy / referrer-policy） |
+| `www` 憑證 | Google Trust Services WE1，CN=www.practicepointer.org，到期 2027-01-17 |
+| 追蹤碼 | 首頁與 404 頁均無 script／外部資源 |
+
+> 本機代理會干擾驗證：`dig` 直接超時、`openssl s_client` 拉不到 PEM。判斷「是否真的 200/404」
+> 要用 curl 看狀態碼，必要時用第三方 vantage（`api.hackertarget.com/httpheaders/?q=<url>`）交叉確認；
+> 但先確認代理不是在騙你 —— 拿 `https://example.com/nope` 應得 404 當對照組。
+
+### 部署目錄的最終形態
+
+`site/`（＝部署來源，`repo/` 同名檔案保持同步）：
+
+```
+404.html  _headers  _worker.js  index.html
+llms.txt  robots.txt  sitemap.xml  CNAME  .nojekyll
+```
+
+已刪 `_redirects`（主機名規則無效，留著只會誤導下一個人）。

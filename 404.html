@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>找不到這一頁 — 執業指針 PracticePointer</title>
+<meta name="robots" content="noindex,follow">
+<meta name="description" content="這個路徑不存在。回到首頁，或用站內檢索找條文。">
+<style>
+:root{
+  --ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;
+  --bg:#ffffff;--bg-2:#f5f5f7;--navy:#0a2a52;--teal:#00a0b0;
+  --line:rgba(0,0,0,.10);--w:980px;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","PingFang HK","PingFang TC","Hiragino Sans CNS","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.6;
+     display:flex;flex-direction:column;min-height:100vh}
+a{color:var(--navy);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{width:min(100% - 40px,var(--w));margin:0 auto}
+header{border-bottom:1px solid var(--line);padding:18px 0}
+header .wrap{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.01em}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--teal);display:inline-block}
+main{flex:1;display:flex;align-items:center;padding:72px 0}
+.code{font-size:clamp(56px,12vw,104px);line-height:1;font-weight:700;color:var(--navy);
+      letter-spacing:-.03em;margin:0 0 18px}
+h1{font-size:clamp(22px,3.4vw,30px);margin:0 0 14px;letter-spacing:-.01em}
+p{color:var(--ink-2);margin:0 0 12px;max-width:52ch}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.btn{display:inline-block;padding:11px 20px;border-radius:999px;border:1px solid var(--line);
+     font-size:15px;color:var(--ink);background:var(--bg-2)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn:hover{text-decoration:none;opacity:.88}
+.hint{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);font-size:14px;color:var(--ink-3);max-width:60ch}
+footer{border-top:1px solid var(--line);padding:22px 0;font-size:13px;color:var(--ink-3)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:space-between}
+@media (prefers-color-scheme:dark){
+  :root{--ink:#f5f5f7;--ink-2:#a1a1a6;--ink-3:#8e8e93;--bg:#000;--bg-2:#1c1c1e;
+        --navy:#8ab4f8;--line:rgba(255,255,255,.14);--teal:#3fd0dd}
+  .btn.primary{background:#fff;border-color:#fff;color:#000}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap"><span class="dot"></span><a href="/">執業指針 PracticePointer</a></div>
+</header>
+
+<main>
+  <div class="wrap">
+    <p class="code">404</p>
+    <h1>找不到這個路徑</h1>
+    <p>這個網址不存在，或者曾經存在、現已改名。本站是純靜態站，沒有後台可以救回舊連結。</p>
+    <p>如果你是在找某條條文或某個場景，回主頁用檢索會比猜網址快。</p>
+
+    <div class="actions">
+      <a class="btn primary" href="/">回到主頁</a>
+      <a class="btn" href="/#search">條文快速檢索</a>
+      <a class="btn" href="/llms.txt">llms.txt（給 AI 的索引）</a>
+    </div>
+
+    <p class="hint">若你是從站內某個連結點進來而看到這一頁，那是我們的問題 —— 請記下你剛才點的標題，回報給維護者，我們會修。</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>內容 CC BY-SA 4.0 · 程式碼 MIT</span>
+    <span>本站不載入任何追蹤碼與廣告</span>
+  </div>
+</footer>
+</body>
+</html>
