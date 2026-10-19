@@ -1,2 +1,5 @@
 .DS_Store
 *.log
+
+# 本地专属 PII 模式（不进仓库）
+tools/pii-patterns.local.txt

@@ -4,8 +4,21 @@
 # 掃描時就會掃到自己 —— 這叫「假紅」，會擋掉合法的 push。
 # 獨立出來後只需排除這一個檔，掃描範圍就能覆蓋其他所有檔案。
 #
-# 語法：grep -E（每行一條正則）
+# 語法：grep -E（每行一條正則；空行與 # 註解會先被清掉）
+#
+# ⚠️ 這個檔案本身是公開的。所以只放「通用模式」——
+#    一旦把具體姓名、具體郵箱字串寫進來，等於用偵測器把要保護的東西公開了。
+#    專案專屬的具體字串放 tools/pii-patterns.local.txt（.gitignore 已排除），
+#    connect-github.sh 會自動合併兩者。
 
-leonl\.inhk
+# 私人郵箱服務
 @gmail\.com
-Leon Liang
+@outlook\.com
+@hotmail\.com
+@yahoo\.com
+@icloud\.com
+@qq\.com
+@163\.com
+
+# 香港手機號（8 位，可帶 +852）
+\+852[[:space:]]?[2-9][0-9]{3}[[:space:]]?[0-9]{4}

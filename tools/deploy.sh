@@ -76,8 +76,15 @@ if [ "$SYNC" -eq 1 ]; then
 fi
 
 # --- 1b. 提交快照（部署前落地，推送留到驗收全綠之後）---
-GITN="${GIT_AUTHOR_NAME:-Leon Liang}"
-GITE="${GIT_AUTHOR_EMAIL:-leonl.inhk@gmail.com}"
+# 提交者身分：**這個倉庫是公開的**，絕不可使用個人姓名或私人郵箱。
+# 優先序：PP_GIT_AUTHOR_* > repo 的 local config（已是中性身分）> 中性預設。
+# 刻意不用 GIT_AUTHOR_NAME / GIT_AUTHOR_EMAIL ——
+#   1) 那組變數會被個人環境或工具預設值污染；
+#   2) 一旦把它們寫成腳本裡的硬編碼預設值，等於把姓名郵箱直接寫進公開倉庫。
+GITN="$(git -C "$ROOT" config --local user.name 2>/dev/null || true)"
+GITE="$(git -C "$ROOT" config --local user.email 2>/dev/null || true)"
+GITN="${PP_GIT_AUTHOR_NAME:-${GITN:-PracticePointer Maintainer}}"
+GITE="${PP_GIT_AUTHOR_EMAIL:-${GITE:-noreply@practicepointer.org}}"
 if [ -n "$(git -C "$ROOT" status --porcelain 2>/dev/null)" ]; then
   files=$(git -C "$ROOT" status --porcelain | awk '{print $NF}' | tr '\n' ' ')
   git -C "$ROOT" add -A >/dev/null 2>&1
@@ -199,7 +206,17 @@ if [ "$fail" -eq 0 ] && [ "$envfail" -eq 0 ]; then
 
   # 推送：唯一值得推的時刻就是「程式碼 = 線上 = 已驗證」這三者重合的現在
   if [ "$PUSH" -eq 1 ]; then
-    if GIT_TERMINAL_PROMPT=0 git -C "$ROOT" push origin HEAD:main >/tmp/_pp_push.log 2>&1; then
+    # 推送前最後一道關：這一推是公開的，先看提交者是誰。
+    # 舊版直接 push，不查身分 —— 結果 10 個帶著真實姓名與私人郵箱的提交
+    # 就是這樣上去的（connect-github.sh 裡有同樣的檢查，但 deploy 繞過了它）。
+    leak=$(git -C "$ROOT" log --format='%an <%ae>' origin/main..HEAD 2>/dev/null \
+           | grep -viE 'noreply@|Maintainer' || true)
+    if [ -n "$leak" ]; then
+      say "❌ 待推送的提交裡有非中性身分，已中止推送（部署已成功，不影響線上）："
+      printf '%s\n' "$leak" | sort -u | sed 's/^/   /'
+      say "   修法：git -C $ROOT rebase --exec 'git commit --amend --no-edit --reset-author' origin/main"
+      say "   或設 PP_GIT_AUTHOR_NAME / PP_GIT_AUTHOR_EMAIL 後重跑。"
+    elif GIT_TERMINAL_PROMPT=0 git -C "$ROOT" push origin HEAD:main >/tmp/_pp_push.log 2>&1; then
       say "→ 已推送 origin/main：$(git -C "$ROOT" rev-parse --short HEAD)"
     else
       say "⚠ 推送失敗（部署已成功，不影響線上）："

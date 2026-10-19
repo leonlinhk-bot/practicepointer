@@ -29,7 +29,14 @@ echo "=== 1/3 個人資訊檢查（掃已追蹤檔案）==="
 # ⚠️ 模式檔裡不能留空行：grep -f 會把「空正則」當成匹配所有行，
 #    結果每個檔案的每一行都算命中 —— 假紅。所以先清掉空行與 # 註解再餵給 grep。
 PAT_CLEAN="$(mktemp)"
-grep -vE '^[[:space:]]*(#|$)' "$HERE/pii-patterns.txt" > "$PAT_CLEAN"
+{
+  grep -vE '^[[:space:]]*(#|$)' "$HERE/pii-patterns.txt"
+  # 專案專屬的具體字串放在本地檔（.gitignore 已排除）。
+  # 理由：公開的偵測清單如果把姓名郵箱寫進去，等於用偵測器把要保護的東西公開。
+  if [ -f "$HERE/pii-patterns.local.txt" ]; then
+    grep -vE '^[[:space:]]*(#|$)' "$HERE/pii-patterns.local.txt"
+  fi
+} > "$PAT_CLEAN"
 trap 'rm -f "$PAT_CLEAN"' EXIT
 echo "  使用模式：$(tr '\n' ' ' < "$PAT_CLEAN")"
 hits=$(git ls-files \
