@@ -92,10 +92,18 @@ OAuth token 會過期（約 30 天）。過期時重跑 `npx wrangler login`，�
 
 ## 誰負責什麼（2026-10-19 定案）
 
-| 事項 | 負責 |
-| --- | --- |
-| 內容（文案、條文、頁面結構） | WorkBuddy |
-| 部署、域名、DNS、憑證、驗收 | Hermes（本機 agent） |
+| 事項 | 誰 | 邊界 |
+| --- | --- | --- |
+| `index.html` / `llms.txt` / `robots.txt` / `sitemap.xml` / `404.html` 文案 / README / CONTRIBUTING | WorkBuddy | **只改 `repo/`**，不碰 `site/` |
+| `_worker.js` / `_headers` / `CNAME` / `sync-to-publish.sh` / `tools/deploy.sh` | Hermes | 部署機制，內容方不要動 |
+| 部署執行（`wrangler pages deploy`） | Hermes | 單一入口 `tools/deploy.sh` |
+| **線上獨立複驗** | **WorkBuddy** | **只讀**，不算部署。部署方不能自證 |
+| DNS / 憑證 / ICANN / DNSSEC | Hermes | — |
+| git 推送 | WorkBuddy | 本機 git 協議不通，走 API；**單一推送方**，避免歷史分叉 |
+| 內容改動通知 | WorkBuddy → Hermes | 「改完了，請你部署」 |
+
+**唯一編輯源是 `repo/`；`site/` 是生成物，任何人不手改。** `deploy.sh` 會偵測
+「內容不同且 `site/` 較新」的手改痕跡並中止（要覆蓋得明寫 `--force`）。
 
 **部署一律走 `tools/deploy.sh`**，不要手敲 wrangler 命令：
 
@@ -116,8 +124,9 @@ cd ~/WorkBuddy/2026-10-15-11-31-42/repo
 
 ### 交接給內容方（WorkBuddy）
 
-- 改內容：只改 `repo/` 裡的 `index.html` / `llms.txt` / `robots.txt` / `sitemap.xml`，然後通知 Hermes 部署；或自己跑上面那條命令。
-- **不要**動 `_worker.js`（www→apex 301）、`_headers`（安全標頭）、`404.html`（沒有它 Pages 會退回 SPA，全站變 soft 404）、`CNAME`。
+- 改內容：只改 `repo/` 裡的 `index.html` / `llms.txt` / `robots.txt` / `sitemap.xml`（`404.html` 的**文案**也可以改），然後通知 Hermes 部署。
+- `404.html` **不可刪除**（沒有它 Pages 會退回 SPA，全站不存在的路徑都變 200 首頁），但文案屬內容，改完要重跑驗收。
+- **不要**動 `_worker.js`（www→apex 301）、`_headers`（安全標頭）、`CNAME`。
 - 不要新增 `_redirects` 做跨主機轉址 —— Pages 只匹配路徑，寫主機名不生效。
 - 域名側（Registrar、DNS、憑證、ICANN 驗證）由 Hermes 管，WorkBuddy 不需要碰。
 

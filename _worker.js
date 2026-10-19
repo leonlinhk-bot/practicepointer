@@ -10,12 +10,22 @@
 //
 // 保留路徑與 query string：改寫 hostname 後整條 URL 一起轉。
 
+// 用集合而不是單一硬編碼主機名：practicepointer.hk / www.practicepointer.hk
+// 日後上線時不必再改這支 worker，也不會出現「.hk 直接 200 回同一份內容」的
+// 重複內容問題。DNS 尚未存在的域名放在集合裡是無害的。
+const APEX = "practicepointer.org";
+const REDIRECT_HOSTS = new Set([
+  "www.practicepointer.org",
+  "practicepointer.hk",
+  "www.practicepointer.hk",
+]);
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.hostname === "www.practicepointer.org") {
-      url.hostname = "practicepointer.org";
+    if (REDIRECT_HOSTS.has(url.hostname)) {
+      url.hostname = APEX;
       url.protocol = "https:";
       return Response.redirect(url.toString(), 301);
     }
