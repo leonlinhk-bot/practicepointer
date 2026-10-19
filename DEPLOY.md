@@ -98,10 +98,10 @@ OAuth 在這台機器不可靠：`wrangler login` 的回調只綁 `::1`，Chrome
 | --- | --- | --- |
 | `index.html` / `llms.txt` / `robots.txt` / `sitemap.xml` / `404.html` 文案 / README / CONTRIBUTING | WorkBuddy | **只改 `repo/`**，不碰 `site/` |
 | `_worker.js` / `_headers` / `CNAME` / `sync-to-publish.sh` / `tools/deploy.sh` | Hermes | 部署機制，內容方不要動 |
-| 部署執行（`wrangler pages deploy`） | Hermes | 單一入口 `tools/deploy.sh` |
+| 部署執行（`wrangler pages deploy`） | Hermes | 單一入口 `tools/deploy.sh`；它會 同步 → 提交快照 → 部署 → 自檢 → **全綠自動 push** |
 | **線上獨立複驗** | **WorkBuddy** | **只讀**，不算部署。部署方不能自證 |
 | DNS / 憑證 / ICANN / DNSSEC | Hermes | — |
-| git 推送 | WorkBuddy | 本機 git 協議不通，走 API；**單一推送方**，避免歷史分叉 |
+| git 推送 | **Hermes** | **部署自檢全綠後立刻推**（同一動作的最後一步）。實測本機 HTTPS+憑證可用，不需要另設推送方 |
 | 內容改動通知 | WorkBuddy → Hermes | 「改完了，請你部署」 |
 
 **唯一編輯源是 `repo/`；`site/` 是生成物，任何人不手改。** `deploy.sh` 會偵測
