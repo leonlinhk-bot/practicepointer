@@ -88,26 +88,43 @@ else
   say "→ 工作區乾淨，部署既有提交 $(git -C "$ROOT" rev-parse --short HEAD)"
 fi
 
-# --- 2. 憑證 ---
-TOK="${CLOUDFLARE_API_TOKEN:-}"
-# 專案 scoped token（Account → Cloudflare Pages → Edit，無到期），比 wrangler OAuth 穩
-[ -z "$TOK" ] && [ -s "$HOME/.cf-token-pp" ] && TOK="$(cat "$HOME/.cf-token-pp")"
+# --- 2. 憑證（每個候選都實測，不採信「存在即有效」）---
+# 實測點用 pages/projects/<project>：這是部署真正要打的端點，能讀到就代表 token
+# 對這個專案有效。只查 /zones 會放過「zone 可讀但 Pages 無權」的 token。
+api_ok() {
+  curl -s -m 20 "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/pages/projects/$PROJECT" \
+    -H "Authorization: Bearer $1" | grep -q '"success":true'
+}
+
+TOK=""
+# ① 專案 scoped token（首選：無到期，不受 OAuth 回調問題影響）
+if [ -s "$HOME/.cf-token-pp" ]; then
+  t=$(cat "$HOME/.cf-token-pp")
+  if api_ok "$t"; then TOK="$t"; say "→ 憑證來源：~/.cf-token-pp"
+  else say "⚠ ~/.cf-token-pp 的 token 碰不到 $PROJECT，跳過"; fi
+fi
+
+# ② 環境變數（可能被其它專案的 token 佔用，必須實測再採用）
+if [ -z "$TOK" ] && [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+  if api_ok "$CLOUDFLARE_API_TOKEN"; then TOK="$CLOUDFLARE_API_TOKEN"; say "→ 憑證來源：環境變數 CLOUDFLARE_API_TOKEN"
+  else say "⚠ 環境變數 CLOUDFLARE_API_TOKEN 碰不到 $PROJECT，跳過"; fi
+fi
+
+# ③ wrangler OAuth
 if [ -z "$TOK" ]; then
   for f in "$HOME/.wrangler/config/default.toml" \
            "$HOME/Library/Preferences/.wrangler/config/default.toml"; do
     [ -f "$f" ] || continue
     t=$(grep -m1 '^oauth_token' "$f" 2>/dev/null | sed 's/.*= "//; s/"$//')
     [ -n "${t:-}" ] || continue
-    if curl -s -m 15 "https://api.cloudflare.com/client/v4/zones?name=practicepointer.org" \
-         -H "Authorization: Bearer $t" | grep -q '"success":true'; then
-      TOK="$t"; say "→ 憑證來源：$f"; break
-    fi
+    if api_ok "$t"; then TOK="$t"; say "→ 憑證來源：$f"; break
+    else say "⚠ $f 的 token 已失效或無權，跳過"; fi
   done
 fi
 
-[ -n "$TOK" ] || die "沒有可用的 Cloudflare 憑證。先跑：
-    cd $ROOT && unset CLOUDFLARE_API_TOKEN && npx --yes wrangler@4.151.1 login
-  在瀏覽器按一次 Allow 後再執行本腳本。"
+[ -n "$TOK" ] || die "沒有可用的 Cloudflare 憑證（三個來源都試過且都失敗）。
+   · 首選：建一支 Account → Cloudflare Pages → Edit、TTL 留空的 token，存到 ~/.cf-token-pp
+   · 或：cd $ROOT && unset CLOUDFLARE_API_TOKEN && npx --yes wrangler@4.151.1 login（本機 OAuth 不可靠）"
 
 # --- 3. 部署 ---
 say "→ 部署到 Pages（project: $PROJECT, branch: main）"
