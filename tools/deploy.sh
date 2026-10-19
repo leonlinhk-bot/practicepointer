@@ -92,8 +92,11 @@ fi
 # 實測點用 pages/projects/<project>：這是部署真正要打的端點，能讀到就代表 token
 # 對這個專案有效。只查 /zones 會放過「zone 可讀但 Pages 無權」的 token。
 api_ok() {
+  # 注意：Cloudflare 這個端點回的是「美化過的」JSON（`"success": true` 有空格），
+  # 用 grep '"success":true' 會全部判成失敗 —— 老實解析 JSON。
   curl -s -m 20 "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/pages/projects/$PROJECT" \
-    -H "Authorization: Bearer $1" | grep -q '"success":true'
+    -H "Authorization: Bearer $1" 2>/dev/null \
+  | python3 -c 'import sys,json;sys.exit(0 if json.load(sys.stdin).get("success") else 1)' 2>/dev/null
 }
 
 TOK=""
